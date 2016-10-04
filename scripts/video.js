@@ -40,6 +40,7 @@ var DATA = {};
  overlays: []                                               // optional, wont run if undefined
  }
 
+ Element['name'] is added via `init`
  Element['id'] is dynamically generated via `mount`
 
  Overlay = {
@@ -359,7 +360,9 @@ var embed = function(params){
 };
 
 var init = function(videoConfigs){
-  VIDEOS = videoConfigs;
+  VIDEOS = R.mapObjIndexed(function(element, name, obj){
+    return R.assoc('name', name, element);
+  }, videoConfigs);
 };
 
 var api = function(){

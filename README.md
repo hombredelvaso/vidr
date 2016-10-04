@@ -1,7 +1,6 @@
 ### use
 
 ### todo
-- figure out all actions in and out of learning elements version... match up to externally control as 'third party plugin'
 - move mount element string out of element, and into embed function... add it to the element in the file itself for use in the code
 
 - improve video options: streaming?, non download? Captions.
