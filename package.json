@@ -1,0 +1,19 @@
+{
+  "name": "vidr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/vidr.js",
+  "scripts": {
+    "compile": "watchify -t browserify-css ./src/vidr.js -o ./dist/vidr.js -d",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^13.0.1",
+    "browserify-css": "^0.9.1",
+    "jquery": "^3.0.0",
+    "ramda": "^0.22.1",
+    "watchify": "^3.7.0"
+  }
+}

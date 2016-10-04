@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>DEMO VIDEO 1</title>
+  <style>
+
+  </style>
+</head>
+<body>
+
+  <div id="ninjaattack"></div>
+
+  <script src="../node_modules/jquery/dist/jquery.js"></script>
+  <script src="../dist/vidr.js"></script>
+  <script>
+
+    jQuery(document).on('video::mounted', function(event, element){
+      console.log('mounted!', element)
+    });
+
+    jQuery(document).on('video::unmounted', function(event){
+      console.log('unmounted!')
+    });
+
+    jQuery(document).on('video::playing', function(event, isPlaying){
+      console.log('video is playing?', isPlaying)
+    });
+
+    jQuery(document).on('video::ended', function(event, autoProgress){
+      console.log('ended, should autoProgress?', autoProgress)
+    });
+
+    Vidr.configure({
+      environment: 'development',
+      events: jQuery(document),
+      options: {
+        fadeTime: 500
+      }
+    });
+
+    Vidr.init({
+      'video-1': {
+        type: 'video',
+        mount: '#ninjaattack',
+        src: 'media/videos/ninjaattack/1.mp4',
+        autoPlay: true,
+        autoProgress: false,
+        overlays: [
+          {
+            type: 'branching',
+            pause: true,
+            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="snap" style="height:50px;float:left;width:50%;"></div><div id="sweep" style="height:50px;float:right;width:50%;"></div></div>',
+            setup: function(params){
+              $(document).on('click', '#sweep', function(){ params.goTo('1b') });
+              $(document).on('click', '#snap', function(){ params.goTo('1a') });
+            },
+            branches: {
+              '1a': {
+                src: 'media/videos/ninjaattack/1a/1a.mp4',
+                overlays: [
+                  {
+                    type: 'branching',
+                    pause: true,
+                    html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                    setup: function(params){
+                      $(document).on('click', '#assault', function(){ params.goTo('1a2a') });
+                      $(document).on('click', '#block', function(){ params.goTo('1a2b') });
+                    },
+                    branches: {
+                      '1a2a': {
+                        src: 'media/videos/ninjaattack/1a/1a2a/1a2a.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      },
+                      '1a2b': {
+                        src: 'media/videos/ninjaattack/1a/1a2b/1a2b.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    location: {
+                      top: '77%',
+                      bottom: '0%',
+                      left: '0%',
+                      right: '0%'
+                    },
+                    timing: {
+                      start: 9
+                    }
+                  }
+                ]
+              },
+              '1b': {
+                src: 'media/videos/ninjaattack/1b/1b.mp4',
+                overlays: [
+                  {
+                    type: 'branching',
+                    pause: true,
+                    html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="rush" style="height:50px;float:left;width:50%;"></div><div id="counter" style="height:50px;float:right;width:50%;"></div></div>',
+                    setup: function(params){
+                      $(document).on('click', '#rush', function(){ params.goTo('1b2b') });
+                      $(document).on('click', '#counter', function(){ params.goTo('1b2a') });
+                    },
+                    branches: {
+                      '1b2a': {
+                        src: 'media/videos/ninjaattack/1b/1b2a/1b2a.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      },
+                      '1b2b': {
+                        src: 'media/videos/ninjaattack/1b/1b2b/1b2b.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    location: {
+                      top: '77%',
+                      bottom: '0%',
+                      left: '0%',
+                      right: '0%'
+                    },
+                    timing: {
+                      start: 7
+                    }
+                  }
+                ]
+              }
+            },
+            location: {
+              top: '77%',
+              bottom: '0%',
+              left: '0%',
+              right: '0%'
+            },
+            timing: {
+              start: 22
+            }
+          }
+        ]
+      },
+      'video-2': {
+        type: 'video',
+        mount: '#video1',
+        src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113',
+        overlays: [
+          {
+            type: 'radio',
+            fade: { in: true, time: 1300 },
+            pause: false,
+            showAfterResponse: false,
+            question: {
+              title: 'How many grants have you written?',
+              answers: [
+                { value: 'none', text: 'None', feedback: 'This video will definitely help.' },
+                { value: 'one', text: 'One', feedback: 'You should pick up a few tips.' },
+                { value: 'more than one', text: 'More than one', feedback: 'Let\'s skip to discussion on priorities. Please let us know how you feel along the way with feedback.', action: { type: 'go', location: 52 } }
+              ]
+            },
+            style: {
+              main: 'padding-left:10px;padding-right:10px;',
+              background: ''
+            },
+            location: {
+              top: '0%',
+              bottom: '0%',
+              left: '65%',
+              right: '0%'
+            },
+            timing: {
+              start: 2,
+              end: 20
+            }
+          },
+          {
+            type: 'html',
+            fade: { in: true, time: 1300 },
+            pause: false,
+            //html: '<p style="font-size:100px;color:blue;">Hello</p>',
+            html: '<div id="container"><canvas id="waterfall"></canvas></div>',
+            setup: function(){
+              var waterfallCanvas = function(c, cw, ch){
+
+                var _this = this;
+                this.c = c;
+                this.ctx = c.getContext('2d');
+                this.cw = cw;
+                this.ch = ch;
+
+                this.particles = [];
+                this.particleRate = 6;
+                this.gravity = .15;
+
+
+                this.init = function(){
+                  this.loop();
+                };
+
+                this.reset = function(){
+                  this.ctx.clearRect(0,0,this.cw,this.ch);
+                  this.particles = [];
+                };
+
+                this.rand = function(rMi, rMa){return ~~((Math.random()*(rMa-rMi+1))+rMi);};
+
+
+                this.Particle = function(){
+                  var newWidth = _this.rand(1,20);
+                  var newHeight = _this.rand(1, 45);
+                  this.x = _this.rand(10+(newWidth/2), _this.cw-10-(newWidth/2));
+                  this.y = -newHeight;
+                  this.vx = 0;
+                  this.vy = 0;
+                  this.width = newWidth;
+                  this.height = newHeight;
+                  this.hue = _this.rand(200, 220);
+                  this.saturation = _this.rand(30, 60);
+                  this.lightness = _this.rand(30, 60);
+                };
+
+                this.Particle.prototype.update = function(i){
+                  this.vx += this.vx;
+                  this.vy += _this.gravity;
+                  this.x += this.vx;
+                  this.y += this.vy;
+                };
+
+                this.Particle.prototype.render = function(){
+                  _this.ctx.strokeStyle = 'hsla('+this.hue+', '+this.saturation+'%, '+this.lightness+'%, .05)';
+                  _this.ctx.beginPath();
+                  _this.ctx.moveTo(this.x, this.y);
+                  _this.ctx.lineTo(this.x, this.y + this.height);
+                  _this.ctx.lineWidth = this.width/2;
+                  _this.ctx.lineCap = 'round';
+                  _this.ctx.stroke();
+                };
+
+                this.Particle.prototype.renderBubble = function(){
+                  _this.ctx.fillStyle = 'hsla('+this.hue+', 40%, 40%, 1)';
+                  _this.ctx.fillStyle = 'hsla('+this.hue+', '+this.saturation+'%, '+this.lightness+'%, .3)';
+                  _this.ctx.beginPath();
+                  _this.ctx.arc(this.x+this.width/2, _this.ch-20-_this.rand(0,10), _this.rand(1,8), 0, Math.PI*2, false);
+                  _this.ctx.fill();
+                };
+
+                this.createParticles = function(){
+                  var i = this.particleRate;
+                  while(i--){
+                    this.particles.push(new this.Particle());
+                  }
+                };
+
+                this.removeParticles = function(){
+                  var i = this.particleRate;
+                  while(i--){
+                    var p = this.particles[i];
+                    if(p.y > _this.ch-20-p.height){
+                      p.renderBubble();
+                      _this.particles.splice(i, 1);
+                    }
+                  }
+                };
+
+                this.updateParticles = function(){
+                  var i = this.particles.length;
+                  while(i--){
+                    var p = this.particles[i];
+                    p.update(i);
+                  };
+                };
+
+                this.renderParticles = function(){
+                  var i = this.particles.length;
+                  while(i--){
+                    var p = this.particles[i];
+                    p.render();
+                  };
+                };
+
+                this.clearCanvas = function(){
+                  this.ctx.globalCompositeOperation = 'destination-out';
+                  this.ctx.fillStyle = 'rgba(255,255,255,.06)';
+                  this.ctx.fillRect(0,0,this.cw,this.ch);
+                  this.ctx.globalCompositeOperation = 'lighter';
+                };
+
+                this.loop = function(){
+                  var loopIt = function(){
+                    requestAnimationFrame(loopIt, _this.c);
+                    _this.clearCanvas();
+                    _this.createParticles();
+                    _this.updateParticles();
+                    _this.renderParticles();
+                    _this.removeParticles();
+                  };
+                  loopIt();
+                };
+
+              };
+
+              var isCanvasSupported = function(){
+                var elem = document.createElement('canvas');
+                return !!(elem.getContext && elem.getContext('2d'));
+              };
+
+              var setupRAF = function(){
+                var lastTime = 0;
+                var vendors = ['ms', 'moz', 'webkit', 'o'];
+                for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x){
+                  window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+                  window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+                };
+
+                if(!window.requestAnimationFrame){
+                  window.requestAnimationFrame = function(callback, element){
+                    var currTime = new Date().getTime();
+                    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                    var id = window.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+                    lastTime = currTime + timeToCall;
+                    return id;
+                  };
+                };
+
+                if (!window.cancelAnimationFrame){
+                  window.cancelAnimationFrame = function(id){
+                    clearTimeout(id);
+                  };
+                };
+              };
+
+              if(isCanvasSupported()){
+                var c = document.getElementById('waterfall');
+                var cw = c.width = 100;
+                var ch = c.height = 140;
+                var waterfall = new waterfallCanvas(c, cw, ch);
+                setupRAF();
+                waterfall.init();
+              }
+            },
+            location: {
+              top: '0%',
+              bottom: '0%',
+              left: '26%',
+              right: '0%'
+            },
+            timing: {
+              start: 30,
+              end: 40
+            }
+          },
+          {
+            type: 'html',
+            fade: { in: true, time: 1300 },
+            pause: false,
+            //html: '<p style="font-size:100px;color:blue;">Hello</p>',
+            html: '<div style="pointer-events:all;"><canvas id="c" style="pointer-events:all;"></canvas></div>',
+            setup: function(){
+              var width = 200,
+                      height = 200,
+                      c = document.getElementById('c'),
+                      ctx = c.getContext('2d');
+              c.width = width;
+              c.height = height;
+
+              var mouse = {
+                x: 0,
+                y: 0
+              };
+
+              var mouseDown = false;
+
+              var patterns = [[1], [2], [1, 2], [2, 2], [2, 1, 2], [3, 3], [2, 3, 2], [4, 4], [3, 3, 3], [3, 4, 3]];
+              var actualPoints = [];
+              var possiblePoints = [];
+              var points = [];
+              var gameEnabled = false;
+              var lvl = 3;
+              var best = lvl;
+
+
+              function init(){
+                c.addEventListener('mousedown', MouseDown, false);
+                c.addEventListener('mouseup', MouseUp, false);
+                c.addEventListener('mousemove', MouseMove, false);
+
+                prepare();
+              }
+
+              function point(x, y, v){
+                this.x = x;
+                this.y = y;
+                this.value = v;
+              }
+
+              function prepare(){
+                possiblePoints = [];
+                actualPoints = [];
+                points = [];
+                for (var i = 0; i < lvl; i++) {
+                  possiblePoints.push(i + 1);
+                  actualPoints.push(i + 1);
+
+                  //Randomise order
+                  possiblePoints.sort(function(){
+                    return 0.5 - Math.random()
+                  });
+                }
+
+                //Arrange dots in shapes/patterns
+                pattern = patterns[lvl - 1];
+                itemsAdded = 0;
+
+                //For each row
+                for (i = 0; i < pattern.length; i++) {
+                  rowItems = pattern[i];
+                  //For each item in each row
+                  for (var j = 0; j < rowItems; j++) {
+                    pointx = (Math.floor(width / 2) + 30) - 80 * j;
+                    pointy = (Math.floor(height / 2) + 60) - 80 * i;
+                    points.push(new point(pointx, pointy, possiblePoints[itemsAdded]));
+                    itemsAdded++;
+                  }
+                }
+
+                gameEnabled = false;
+                drawPoints(true);
+                setTimeout(function(){
+                  hidetext();
+                }, 2000);
+              }
+
+              function hidetext(){
+                drawPoints(false);
+                gameEnabled = true;
+              }
+
+              function drawPoints(drawText){
+                for (var i = 0; i < points.length; i++) {
+                  ctx.fillStyle = '#000000';
+                  ctx.beginPath();
+                  ctx.arc(points[i].x, points[i].y, 30, 0, Math.PI * 2, true);
+                  ctx.closePath();
+                  ctx.fill();
+                  ctx.lineWidth = 6;
+                  ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+                  ctx.stroke();
+
+                  if (drawText) {
+                    //Draw text
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = 'bold 20px helvetica';
+                    //Offsets
+                    ctx.fillText(points[i].value, points[i].x - 6, points[i].y + 6);
+                  }
+                }
+              }
+
+              function MouseMove(e){
+                if (e.layerX || e.layerX == 0) { // Firefox
+                  mouse.x = e.layerX - c.offsetLeft;
+                  mouse.y = e.layerY - c.offsetTop;
+                }
+              }
+
+              function MouseDown(e){
+                if (e.layerX || e.layerX == 0) {
+                  mouseDown = true;
+                }
+              }
+
+              function handlePointClick(point){
+                if (point.value == actualPoints[0]) {
+                  actualPoints.splice(0, 1);
+                  ctx.fillStyle = '#FFFFFF';
+                  ctx.font = 'bold 20px helvetica';
+
+                  //Clean up scappy dupplicate code
+                  //Offsets
+                  ctx.fillText(point.value, point.x - 6, point.y + 6);
+
+                  if (actualPoints.length == 0) {
+                    clear();
+                    if (lvl < patterns.length){
+                      lvl = lvl + 1;
+                    }
+
+                    prepare();
+                    return;
+                  }
+                } else {
+                  clear();
+                  lvl = lvl - 1;
+                  prepare();
+                }
+              }
+
+              function clear(){
+                ctx.fillStyle = '#f5f5f5';
+                ctx.beginPath();
+                ctx.rect(0, 0, width, height);
+                ctx.closePath();
+                ctx.fill();
+              }
+
+              function MouseUp(e){
+                if (e.layerX || e.layerX == 0) {
+                  mouseDown = false;
+
+                  if (gameEnabled) {
+                    for (var i = 0; i < points.length; i++) {
+                      var dx = points[i].x - mouse.x;
+                      var dy = points[i].y - mouse.y;
+                      sqrDist = Math.sqrt(dx * dx + dy * dy);
+
+                      if (sqrDist < 30) {
+                        handlePointClick(points[i]);
+                        return;
+                      }
+                    }
+                  }
+                }
+              }
+
+              init();
+            },
+            location: {
+              top: '20%',
+              bottom: '0%',
+              left: '60%',
+              right: '0%'
+            },
+            timing: {
+              start: 20,
+              end: 30
+            }
+          },
+          {
+            type: 'radio',
+            fade: { in: false },
+            pause: true,
+            showAfterResponse: true,
+            question: {
+              title: 'What do you think one of these problems could be?',
+              answers: [
+                { value: 'yes', text: 'Mismatch Between goals of the funding agency and nature of the work.', feedback: 'Correct' },
+                { value: 'no', text: 'Not enough funding.', feedback: 'Nope' },
+                { value: 'maybe', text: 'Max Weber\'s Iron Cage of Bureaucracy', feedback: 'No' }
+              ]
+            },
+            style: {
+              main: 'padding-left:10px;padding-right:10px;',
+              background: 'background:gray;background-color:rgba(0, 0, 0, 0.7);'
+            },
+            location: {
+              top: '5%',
+              bottom: '0%',
+              left: '50%',
+              right: '0%'
+            },
+            timing: {
+              start: 65,
+              end: 66
+            }
+          }
+        ]
+      },
+      'video-3': {
+        type: 'video',
+        mount: '#video2',
+        src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113'
+      }
+    });
+
+    Vidr.embed({ video: 'video-1' });
+
+  </script>
+
+</body>
+</html>
