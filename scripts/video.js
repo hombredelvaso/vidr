@@ -12,10 +12,11 @@ var Projector = require('./../vendor/projectorjs/dist/js/projector_edits.js');
 /////////
 
 var CONFIG = {
-  environment: 'production',
-  events: jQuery(document),
+  events: '',
   options: {
-    fadeTime: 300
+    videoEnd: {
+      fadeTime: 300
+    }
   }
 };
 
@@ -77,7 +78,7 @@ var DATA = {};
 
  EVENTS:
 
- // listening: using local $ \\
+ // listening \\
 
  video::mount   [ Element ]
  video::unmount [ Element ]
@@ -85,13 +86,22 @@ var DATA = {};
  video::play    [ Element ]
  video::pause   [ Element ]
 
- // sending: using passed in CONFIG.events or defaults to local $ \\
+ // sending \\
 
- video::mounted   [ Element ]
- video::unmounted [         ]
- video::playing   [ boolean ]
- video::ended     [ undefined || boolean ]
-
+ video::mounted   [ Element, Elements ]
+ video::unmounted [ Element, Elements ]
+ video::playing   [ Element, Elements, boolean ]
+ video::ended     [ Element, Elements, undefined || boolean ]
+ video::lifecycle [ Element, 'unmounted' ]
+ video::lifecycle [ Element, 'mounted' ]
+ video::lifecycle [ Element, 'playing' ]
+ video::lifecycle [ Element, 'play' ]
+ video::lifecycle [ Element, 'seeked' ]
+ video::lifecycle [ Element, 'seeking' ]
+ video::lifecycle [ Element, 'pause' ]
+ video::lifecycle [ Element, 'ended' ]
+ video::lifecycle [ Element, 'timeupdate' ]
+ video::lifecycle [ Element, 'volumechange' ]
 
  ------------*/
 
@@ -109,6 +119,11 @@ var buildHTML = function(element){
 };
 
 var initOverlays = function(element){
+
+  ///////////////////////////////////////////////
+  // https://github.com/adamscybot/projectorjs //
+  ///////////////////////////////////////////////
+
   var projector = Projector.init(element.id);
 
   var overlayState = {};
@@ -120,7 +135,7 @@ var initOverlays = function(element){
 
       branch['mount'] = element['mount'];
 
-      $(document).trigger('video::swap', [ { old: element, new: branch } ]);
+      CONFIG.events.trigger('video::swap', [ { old: element, new: branch } ]);
     };
 
     var afterBeginOverlay = function(projector, currentTime, dirtyTrigger){
@@ -256,9 +271,9 @@ var mount = function(element){
 
   if(element.overlays){ initOverlays(element) }
 
-  CONFIG.events.trigger('video::mounted', [ element ]);
+  CONFIG.events.trigger('video::mounted', [ element, VIDEOS ]);
 
-  HELPERS.log('[' + element.id + '] video mounted', CONFIG.environment);
+  CONFIG.events.trigger('video::lifecycle', [ element, 'mounted' ]);
 
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
@@ -267,49 +282,46 @@ var mount = function(element){
 
   $('#' + element.id).on('playing', function(event){
     // Sent when the media begins to play (either for the first time, after having been paused, after seeking or after ending and then restarting).
-    HELPERS.log('[' + element.id + '] video playing', CONFIG.environment);
-
-    CONFIG.events.trigger('video::playing', [ true ]);
+    CONFIG.events.trigger('video::lifecycle', [ element, VIDEOS, 'playing']);
+    CONFIG.events.trigger('video::playing', [ element, VIDEOS, true ]);
   });
 
   $('#' + element.id).on('play', function(event){
     // Sent when playback of the media starts after having been paused; that is, when playback is resumed after a prior pause event.
-    HELPERS.log('[' + element.id + '] video play', CONFIG.environment);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'play' ]);
   });
 
   $('#' + element.id).on('seeked', function(event){
     // Sent when a seek operation completes.
-    HELPERS.log('[' + element.id + '] video seeked', CONFIG.environment);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'seeked' ]);
   });
 
   $('#' + element.id).on('seeking', function(event){
     // Sent when a seek operation begins.
-    HELPERS.log('[' + element.id + '] video seeking', CONFIG.environment);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'seeking' ]);
   });
 
   $('#' + element.id).on('pause', function(event){
     // Sent when playback is paused (manually or upon seeking).
-    HELPERS.log('[' + element.id + '] video pause', CONFIG.environment);
-
-    CONFIG.events.trigger('video::playing', [ false ]);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'pause' ]);
+    CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
   });
 
   $('#' + element.id).on('ended', function(event){
     // Sent when playback completes.
-    HELPERS.log('[' + element.id + '] video ended', CONFIG.environment);
-
-    CONFIG.events.trigger('video::playing', [ false ]);
-    CONFIG.events.trigger('video::ended', [ element.autoProgress ]);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'ended' ]);
+    CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
+    CONFIG.events.trigger('video::ended', [ element, VIDEOS, element.autoProgress ]);
   });
 
   $('#' + element.id).on('timeupdate', function(event){
     // The time indicated by the element's currentTime attribute has changed.
-    HELPERS.log('[' + element.id + '] video timeupdate', CONFIG.environment);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'timeupdate' ]);
   });
 
   $('#' + element.id).on('volumechange', function(event){
     // Sent when the audio volume changes (both when the volume is set and when the muted attribute is changed).
-    HELPERS.log('[' + element.id + '] video volumechange', CONFIG.environment);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'volumechange' ]);
   });
 
   return element;
@@ -328,39 +340,12 @@ var unmount = function(element){
   $('#' + element.id).off('volumechange');
 
   $(mount).html('');
-  HELPERS.log('[' + element.id + '] video unmounted', CONFIG.environment);
 
-  return mount;
+  CONFIG.events.trigger('video::lifecycle', [ element, 'unmounted' ]);
+
+  return element;
 
 };
-
-$(document).on('video::swap', function(event, videos){
-  unmount(videos['old']);
-  CONFIG.events.trigger('video::unmounted');
-  var mountedElement = mount(videos['new']);
-  $(document).trigger('video::play', [ mountedElement ]);
-});
-
-$(document).on('video::mount', function(event, element){
-  // TODO: throw 'error' if no mount or src, dont create or register...
-
-  mount(element);
-});
-
-$(document).on('video::unmount', function(event, element){
-  $(element.mount).fadeOut(CONFIG.options.fadeTime, function(){
-    unmount(element);
-    CONFIG.events.trigger('video::unmounted');
-  });
-});
-
-$(document).on('video::play', function(event, element){
-  $('#' + element.id).get(0).play();
-});
-
-$(document).on('video::pause', function(event, element){
-  $('#' + element.id).get(0).pause();
-});
 
 var embed = function(params){
   var videoId = params['video'];
@@ -377,8 +362,48 @@ var init = function(videoConfigs){
   VIDEOS = videoConfigs;
 };
 
+var api = function(){
+
+  var doMount = function(element){
+    return mount(element);
+  };
+
+  var doUnmount = function(element){
+    unmount(element);
+    CONFIG.events.trigger('video::unmounted', [ element, VIDEOS ]);
+    return element;
+  };
+
+  CONFIG.events.on('video::swap', function(event, videos){
+    doUnmount(videos['old']);
+    var mountedElement = doMount(videos['new']);
+    CONFIG.events.trigger('video::play', [ mountedElement ]);
+  });
+
+  CONFIG.events.on('video::mount', function(event, element){
+    // TODO: throw 'error' if no mount or src, dont create or register...
+    doMount(element);
+  });
+
+  CONFIG.events.on('video::unmount', function(event, element){
+    $(element.mount).fadeOut(CONFIG.options.videoEnd.fadeTime, function(){
+      doUnmount(element);
+    });
+  });
+
+  CONFIG.events.on('video::play', function(event, element){
+    $('#' + element.id).get(0).play();
+  });
+
+  CONFIG.events.on('video::pause', function(event, element){
+    $('#' + element.id).get(0).pause();
+  });
+
+};
+
 var configure = function(config){
   CONFIG = R.merge(CONFIG, config);
+  api();
 };
 
 //////////////

@@ -1,5 +1,7 @@
 # Projector.js
 
+> https://github.com/adamscybot/projectorjs
+
 A small no-dependencies JavaScript library that enables the display of overlays on native HTML5 video elements, or (optionally) video elements powered by [videojs](https://github.com/videojs/video.js/). Overlays can be triggered via time ranges or events. A set of useful overlays is (WIP) included to cover common use cases.
 
 ## Getting Started

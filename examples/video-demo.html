@@ -9,209 +9,62 @@
 </head>
 <body>
 
-  <div id="ninjaattack"></div>
+  <div id="video1"></div>
 
   <script src="../node_modules/jquery/dist/jquery.js"></script>
   <script src="../dist/vidr.js"></script>
   <script>
 
-    jQuery(document).on('video::mounted', function(event, element){
-      console.log('mounted!', element)
+    jQuery(document).on('video::mounted', function(event, element, elements){
+      console.log('mounted!', element);
+
+      if(element['autoPlay']){ jQuery(document).trigger('video::play', [ element ]) }
+
     });
 
-    jQuery(document).on('video::unmounted', function(event){
-      console.log('unmounted!')
+    jQuery(document).on('video::unmounted', function(event, element, elements){
+      console.log('unmounted!', element);
+
+      var isFirstVideo = element.mount === elements['video-1'].mount;
+
+      if(isFirstVideo){
+        jQuery(element.mount).replaceWith('<div id="' + elements['video-2'].mount.replace(/#/, '') + '"></div>');
+
+        Vidr.embed({ video: 'video-2' });
+      }
+
     });
 
-    jQuery(document).on('video::playing', function(event, isPlaying){
-      console.log('video is playing?', isPlaying)
+    jQuery(document).on('video::playing', function(event, element, elements, isPlaying){
+      console.log('video is playing?', isPlaying);
     });
 
-    jQuery(document).on('video::ended', function(event, autoProgress){
-      console.log('ended, should autoProgress?', autoProgress)
+    jQuery(document).on('video::ended', function(event, element, elements, shouldAutoProgress){
+      console.log('ended, should autoProgress?', shouldAutoProgress);
+
+      var isFirstVideo = element.mount === elements['video-1'].mount;
+
+      if(isFirstVideo){
+        jQuery(document).trigger('video::unmount', [ element ]);
+      }
+
+    });
+
+    jQuery(document).on('video::lifecycle', function(event, element, action){
+      console.log('>>', action, '[' + element.id + ']');
     });
 
     Vidr.configure({
-      environment: 'development',
       events: jQuery(document),
       options: {
-        fadeTime: 500
+        videoEnd: {
+          fadeTime: 400
+        }
       }
     });
 
     Vidr.init({
       'video-1': {
-        type: 'video',
-        mount: '#ninjaattack',
-        src: 'media/videos/ninjaattack/1.mp4',
-        autoPlay: true,
-        autoProgress: false,
-        overlays: [
-          {
-            type: 'branching',
-            pause: true,
-            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="snap" style="height:50px;float:left;width:50%;"></div><div id="sweep" style="height:50px;float:right;width:50%;"></div></div>',
-            setup: function(params){
-              $(document).on('click', '#sweep', function(){ params.goTo('1b') });
-              $(document).on('click', '#snap', function(){ params.goTo('1a') });
-            },
-            branches: {
-              '1a': {
-                src: 'media/videos/ninjaattack/1a/1a.mp4',
-                overlays: [
-                  {
-                    type: 'branching',
-                    pause: true,
-                    html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
-                    setup: function(params){
-                      $(document).on('click', '#assault', function(){ params.goTo('1a2a') });
-                      $(document).on('click', '#block', function(){ params.goTo('1a2b') });
-                    },
-                    branches: {
-                      '1a2a': {
-                        src: 'media/videos/ninjaattack/1a/1a2a/1a2a.mp4',
-                        overlays: [
-                          {
-                            type: 'branching',
-                            pause: true,
-                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
-                            setup: function(params){
-
-                            },
-                            branches: null,
-                            location: {
-                              top: '77%',
-                              bottom: '0%',
-                              left: '0%',
-                              right: '0%'
-                            },
-                            timing: {
-                              //start: 9
-                            }
-                          }
-                        ]
-                      },
-                      '1a2b': {
-                        src: 'media/videos/ninjaattack/1a/1a2b/1a2b.mp4',
-                        overlays: [
-                          {
-                            type: 'branching',
-                            pause: true,
-                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
-                            setup: function(params){
-
-                            },
-                            branches: null,
-                            location: {
-                              top: '77%',
-                              bottom: '0%',
-                              left: '0%',
-                              right: '0%'
-                            },
-                            timing: {
-                              //start: 9
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    location: {
-                      top: '77%',
-                      bottom: '0%',
-                      left: '0%',
-                      right: '0%'
-                    },
-                    timing: {
-                      start: 9
-                    }
-                  }
-                ]
-              },
-              '1b': {
-                src: 'media/videos/ninjaattack/1b/1b.mp4',
-                overlays: [
-                  {
-                    type: 'branching',
-                    pause: true,
-                    html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="rush" style="height:50px;float:left;width:50%;"></div><div id="counter" style="height:50px;float:right;width:50%;"></div></div>',
-                    setup: function(params){
-                      $(document).on('click', '#rush', function(){ params.goTo('1b2b') });
-                      $(document).on('click', '#counter', function(){ params.goTo('1b2a') });
-                    },
-                    branches: {
-                      '1b2a': {
-                        src: 'media/videos/ninjaattack/1b/1b2a/1b2a.mp4',
-                        overlays: [
-                          {
-                            type: 'branching',
-                            pause: true,
-                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
-                            setup: function(params){
-
-                            },
-                            branches: null,
-                            location: {
-                              top: '77%',
-                              bottom: '0%',
-                              left: '0%',
-                              right: '0%'
-                            },
-                            timing: {
-                              //start: 9
-                            }
-                          }
-                        ]
-                      },
-                      '1b2b': {
-                        src: 'media/videos/ninjaattack/1b/1b2b/1b2b.mp4',
-                        overlays: [
-                          {
-                            type: 'branching',
-                            pause: true,
-                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
-                            setup: function(params){
-
-                            },
-                            branches: null,
-                            location: {
-                              top: '77%',
-                              bottom: '0%',
-                              left: '0%',
-                              right: '0%'
-                            },
-                            timing: {
-                              //start: 9
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    location: {
-                      top: '77%',
-                      bottom: '0%',
-                      left: '0%',
-                      right: '0%'
-                    },
-                    timing: {
-                      start: 7
-                    }
-                  }
-                ]
-              }
-            },
-            location: {
-              top: '77%',
-              bottom: '0%',
-              left: '0%',
-              right: '0%'
-            },
-            timing: {
-              start: 22
-            }
-          }
-        ]
-      },
-      'video-2': {
         type: 'video',
         mount: '#video1',
         src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113',
@@ -632,6 +485,177 @@
             timing: {
               start: 65,
               end: 66
+            }
+          }
+        ]
+      },
+      'video-2': {
+        type: 'video',
+        mount: '#ninjaattack',
+        src: 'media/videos/ninjaattack/1.mp4',
+        autoPlay: true,
+        autoProgress: false,
+        overlays: [
+          {
+            type: 'branching',
+            pause: true,
+            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="snap" style="height:50px;float:left;width:50%;"></div><div id="sweep" style="height:50px;float:right;width:50%;"></div></div>',
+            setup: function(params){
+              $(document).on('click', '#sweep', function(){ params.goTo('1b') });
+              $(document).on('click', '#snap', function(){ params.goTo('1a') });
+            },
+            branches: {
+              '1a': {
+                src: 'media/videos/ninjaattack/1a/1a.mp4',
+                overlays: [
+                  {
+                    type: 'branching',
+                    pause: true,
+                    html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                    setup: function(params){
+                      $(document).on('click', '#assault', function(){ params.goTo('1a2a') });
+                      $(document).on('click', '#block', function(){ params.goTo('1a2b') });
+                    },
+                    branches: {
+                      '1a2a': {
+                        src: 'media/videos/ninjaattack/1a/1a2a/1a2a.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      },
+                      '1a2b': {
+                        src: 'media/videos/ninjaattack/1a/1a2b/1a2b.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    location: {
+                      top: '77%',
+                      bottom: '0%',
+                      left: '0%',
+                      right: '0%'
+                    },
+                    timing: {
+                      start: 9
+                    }
+                  }
+                ]
+              },
+              '1b': {
+                src: 'media/videos/ninjaattack/1b/1b.mp4',
+                overlays: [
+                  {
+                    type: 'branching',
+                    pause: true,
+                    html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="rush" style="height:50px;float:left;width:50%;"></div><div id="counter" style="height:50px;float:right;width:50%;"></div></div>',
+                    setup: function(params){
+                      $(document).on('click', '#rush', function(){ params.goTo('1b2b') });
+                      $(document).on('click', '#counter', function(){ params.goTo('1b2a') });
+                    },
+                    branches: {
+                      '1b2a': {
+                        src: 'media/videos/ninjaattack/1b/1b2a/1b2a.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      },
+                      '1b2b': {
+                        src: 'media/videos/ninjaattack/1b/1b2b/1b2b.mp4',
+                        overlays: [
+                          {
+                            type: 'branching',
+                            pause: true,
+                            html: '<div id="container" style="height:100px;pointer-events:all;cursor:pointer;overflow:auto;"><div id="assault" style="height:50px;float:left;width:50%;"></div><div id="block" style="height:50px;float:right;width:50%;"></div></div>',
+                            setup: function(params){
+
+                            },
+                            branches: null,
+                            location: {
+                              top: '77%',
+                              bottom: '0%',
+                              left: '0%',
+                              right: '0%'
+                            },
+                            timing: {
+                              //start: 9
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    location: {
+                      top: '77%',
+                      bottom: '0%',
+                      left: '0%',
+                      right: '0%'
+                    },
+                    timing: {
+                      start: 7
+                    }
+                  }
+                ]
+              }
+            },
+            location: {
+              top: '77%',
+              bottom: '0%',
+              left: '0%',
+              right: '0%'
+            },
+            timing: {
+              start: 22
             }
           }
         ]
