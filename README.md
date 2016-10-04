@@ -1,7 +1,7 @@
 ### use
 
 ### todo
-- move mount element string out of element, and into embed function... add it to the element in the file itself for use in the code
+- add currentTime etc into applicable mediaevents in `mount` functions
 
 - improve video options: streaming?, non download? Captions.
   - https://github.com/videojs/video.js/
