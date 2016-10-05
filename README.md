@@ -15,6 +15,7 @@
 
 - BRANCHING: when going from video to video, pass volume and other settings to continue as they are...
 - improve branching by adding loop: right now you can go DOWN the tree to terminal nodes like document, but you cannot loop back around [need to have all paths available to decision, and graph like structure to traverse]
+  - also try to use this structure to create UI map of where youve been and where you can go...
 - *assistance*: help overlay alongside choice (answer multiple choice or get hint text)
 - *devil/angel*: before or after choice you can have video in video... mouse over 2 faces for two differetn advisories, or mouse over heads of board memebers and see what they were thinking
 - *state*: if you make someone go below threshold of like, they will answer differently... state matters at certain branches (story-graph)

@@ -15,10 +15,22 @@
   <script src="../dist/vidr.js"></script>
   <script>
 
+    ///////////////
+    // lifecycle //
+    ///////////////
+
+    var playVideo = function(video){
+      jQuery(document).trigger('video::play', [ video ]);
+    };
+
+    var unmountVideo = function(video){
+      jQuery(document).trigger('video::unmount', [ video ]);
+    };
+
     jQuery(document).on('video::mounted', function(event, element, elements){
       console.log('mounted!', element);
 
-      if(element['autoPlay']){ jQuery(document).trigger('video::play', [ element ]) }
+      if(element['autoPlay']){ playVideo(element) }
 
     });
 
@@ -26,11 +38,12 @@
       console.log('unmounted!', element);
 
       var isFirstVideo = element['name'] === 'video-1';
+      var newMount = '#ninjaattack';
 
       if(isFirstVideo){
-        jQuery(element.mount).replaceWith('<div id="' + elements['video-2'].mount.replace(/#/, '') + '"></div>');
+        jQuery(element.mount).replaceWith('<div id="' + newMount.replace(/#/, '') + '"></div>');
 
-        Vidr.embed({ video: 'video-2' });
+        Vidr.embed({ video: 'video-2', mount: newMount });
       }
 
     });
@@ -39,13 +52,17 @@
       console.log('video is playing?', isPlaying);
     });
 
+    jQuery(document).on('video::branching', function(event, element, elements, branches){
+      console.log('video is branching!', branches);
+    });
+
     jQuery(document).on('video::ended', function(event, element, elements, shouldAutoProgress){
       console.log('ended, should autoProgress?', shouldAutoProgress);
 
       var isFirstVideo = element['name'] === 'video-1';
 
       if(isFirstVideo){
-        jQuery(document).trigger('video::unmount', [ element ]);
+        unmountVideo(element);
       }
 
     });
@@ -53,6 +70,10 @@
     jQuery(document).on('video::lifecycle', function(event, element, action){
       console.log('>>', action, '[' + element.id + ']');
     });
+
+    ///////////
+    // setup //
+    ///////////
 
     Vidr.configure({
       events: jQuery(document),
@@ -66,7 +87,6 @@
     Vidr.init({
       'video-1': {
         type: 'video',
-        mount: '#video1',
         src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113',
         overlays: [
           {
@@ -491,7 +511,6 @@
       },
       'video-2': {
         type: 'video',
-        mount: '#ninjaattack',
         src: 'media/videos/ninjaattack/1.mp4',
         autoPlay: true,
         autoProgress: false,
@@ -662,12 +681,11 @@
       },
       'video-3': {
         type: 'video',
-        mount: '#video2',
         src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113'
       }
     });
 
-    Vidr.embed({ video: 'video-1' });
+    Vidr.embed({ video: 'video-1', mount: '#video1' });
 
   </script>
 

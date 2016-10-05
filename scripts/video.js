@@ -12,7 +12,7 @@ var Projector = require('./../vendor/projectorjs/dist/js/projector_edits.js');
 /////////
 
 var CONFIG = {
-  events: '',
+  events: jQuery(document),
   options: {
     videoEnd: {
       fadeTime: 300
@@ -81,9 +81,10 @@ var DATA = {};
 
  // listening \\
 
- video::mount   [ Element ]
+ VIDR::swap     [ Videos ]
+ VIDR::mount    [ Element ]
+ 
  video::unmount [ Element ]
- video::swap    [ Videos  ]
  video::play    [ Element ]
  video::pause   [ Element ]
 
@@ -93,6 +94,7 @@ var DATA = {};
  video::unmounted [ Element, Elements ]
  video::playing   [ Element, Elements, boolean ]
  video::ended     [ Element, Elements, undefined || boolean ]
+ video::branching [ Element, Elements, { branches: [branches], from: Element, to: Element } ]
  video::lifecycle [ Element, 'unmounted' ]
  video::lifecycle [ Element, 'mounted' ]
  video::lifecycle [ Element, 'playing' ]
@@ -136,7 +138,8 @@ var initOverlays = function(element){
 
       branch['mount'] = element['mount'];
 
-      CONFIG.events.trigger('video::swap', [ { old: element, new: branch } ]);
+      CONFIG.events.trigger('video::branching', [ element, VIDEOS, { branches: overlay['branches'], from: element, to: branch } ]);
+      $(document).trigger('VIDR::swap', [ { old: element, new: branch } ]);
     };
 
     var afterBeginOverlay = function(projector, currentTime, dirtyTrigger){
@@ -283,7 +286,7 @@ var mount = function(element){
 
   $('#' + element.id).on('playing', function(event){
     // Sent when the media begins to play (either for the first time, after having been paused, after seeking or after ending and then restarting).
-    CONFIG.events.trigger('video::lifecycle', [ element, VIDEOS, 'playing']);
+    CONFIG.events.trigger('video::lifecycle', [ element, 'playing']);
     CONFIG.events.trigger('video::playing', [ element, VIDEOS, true ]);
   });
 
@@ -349,11 +352,16 @@ var unmount = function(element){
 };
 
 var embed = function(params){
+  var mountSelector = params['mount'];
   var videoId = params['video'];
-  var video = VIDEOS[videoId];
+  var video = R.compose(
+      R.assoc('mount', mountSelector)
+  )(VIDEOS[videoId]);
+
+  VIDEOS[videoId] = video;
 
   if(video){
-    mount(video);
+    $(document).trigger('VIDR::mount', [ video ]);
   } else {
     throw videoId + ': No video to embed';
   }
@@ -377,13 +385,13 @@ var api = function(){
     return element;
   };
 
-  CONFIG.events.on('video::swap', function(event, videos){
+  $(document).on('VIDR::swap', function(event, videos){
     doUnmount(videos['old']);
     var mountedElement = doMount(videos['new']);
     CONFIG.events.trigger('video::play', [ mountedElement ]);
   });
 
-  CONFIG.events.on('video::mount', function(event, element){
+  $(document).on('VIDR::mount', function(event, element){
     // TODO: throw 'error' if no mount or src, dont create or register...
     doMount(element);
   });
@@ -417,5 +425,4 @@ module.exports = {
   configure: configure,
   init: init,
   embed: embed
-  //onSubmission: shareSubmission
 };
