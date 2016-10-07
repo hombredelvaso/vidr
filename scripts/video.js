@@ -2,7 +2,8 @@
 //////////////////////////////////
 var HELPERS = require('./helpers.js');
 var R = require('ramda');
-var jQuery = $ = require('jquery');
+var jQuery = require('jquery');
+var $ = jQuery;
 var Projector = require('./../vendor/projectorjs/dist/js/projector_edits.js');
 //////////////////////////////////
 //////////////////////////////////
@@ -83,7 +84,7 @@ var DATA = {};
 
  VIDR::swap     [ Videos ]
  VIDR::mount    [ Element ]
- 
+
  video::unmount [ Element ]
  video::play    [ Element ]
  video::pause   [ Element ]
@@ -112,7 +113,7 @@ var buildHTML = function(element){
 
   //TODO: remove controls property, make configurable?
 
-  var html = '<video id="' + element.id + '" class="" width="' + (element.width || 400) + '" style="' + (element.style || '') + '" controls>' +
+  var html = '<video id="' + element.id + '" class="" ' + (element.poster ? 'poster="' + element.poster + '"' : '') + ' width="' + (element.width || 400) + '" style="' + (element.style || '') + '" ' + ((element.controls === false) ? '' : 'controls') + '>' +
       '<source src="' + element.src + '" type="video/mp4">' +
       '<source src="' + element.src + '" type="video/ogg">' +
       'Your browser does not support HTML5 video.' +

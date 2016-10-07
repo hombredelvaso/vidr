@@ -1,7 +1,14 @@
 ### use
 
+#### FAQ
+
+> How do I make the video start at a specific time?
+
+- Use a [Media Fragments URI](http://stackoverflow.com/a/5984558) in the `init` `src`
+
 ### todo
 - add currentTime etc into applicable mediaevents in `mount` functions
+- add ability to add preplay image uri if you want to show image before it starts
 
 - improve video options: streaming?, non download? Captions.
   - https://github.com/videojs/video.js/
