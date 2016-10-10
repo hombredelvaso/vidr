@@ -280,8 +280,9 @@ var mount = function(element){
   $(document).on('click', '#' + element['id'], function(event){
     var $target = $(event.target);
     var mode = $target.attr('data-mode');
+    var hasPoster = $target.attr('poster');
 
-    if(mode === 'poster'){
+    if(mode === 'poster' && hasPoster){
       CONFIG.events.trigger('video::play', element);
     }
 

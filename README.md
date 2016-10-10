@@ -5,6 +5,7 @@
 > How do I make the video start at a specific time?
 
 - Use a [Media Fragments URI](http://stackoverflow.com/a/5984558) in the `init` `src`
+  - *NOTE*: if you also have a poster element, it will be bypassed for the first frame at the chosen Media Fragment time
 
 ### todo
 - add currentTime etc into applicable mediaevents in `mount` functions
