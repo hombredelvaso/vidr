@@ -113,18 +113,18 @@ var DATA = {};
  ------------*/
 
 var buildHTML = function(element){
+  var poster = (element.poster || '');
+  var width = (element.width || 400);
+  var style = (element.style || '');
+  var controls = ((element.controls === false) ? '' : 'controls');
 
-  //TODO: remove controls property, make configurable?
-
-  
-
-  var html = '<video id="' + element.id + '" class="" ' + (element.poster ? 'poster="' + element.poster + '"' : '') + ' width="' + (element.width || 400) + '" style="' + (element.style || '') + '" ' + ((element.controls === false) ? '' : 'controls') + ' data-mode="poster"' + '>' +
-      '<source src="' + element.src + '" type="video/mp4">' +
-      '<source src="' + element.src + '" type="video/ogg">' +
-      'Your browser does not support HTML5 video.' +
-      '</video>';
-
-  return html;
+  return `
+    <video id="${element.id}" class="" data-mode="poster" width="${width}" style="${style}" poster="${poster}" ${controls}>
+      <source src="${element.src}" type="video/mp4">
+      <source src="${element.src}" type="video/ogg">
+      'Your browser does not support HTML5 video.'
+    </video>
+  `;
 };
 
 var initOverlays = function(element){
