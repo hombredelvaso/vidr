@@ -28,6 +28,9 @@ var DATA = {};
 // FUNCTIONALITY //
 //////////////////
 
+// data-mode: ['poster', 'playing', 'play', 'seeked', 'seeking', 'pause', 'ended' ]
+// NOTE: can be used to style the video only during certain modes
+
 /*-----------
 
  Element = {
@@ -113,7 +116,7 @@ var buildHTML = function(element){
 
   //TODO: remove controls property, make configurable?
 
-  var html = '<video id="' + element.id + '" class="" ' + (element.poster ? 'poster="' + element.poster + '"' : '') + ' width="' + (element.width || 400) + '" style="' + (element.style || '') + '" ' + ((element.controls === false) ? '' : 'controls') + '>' +
+  var html = '<video id="' + element.id + '" class="" ' + (element.poster ? 'poster="' + element.poster + '"' : '') + ' width="' + (element.width || 400) + '" style="' + (element.style || '') + '" ' + ((element.controls === false) ? '' : 'controls') + ' data-mode="poster"' + '>' +
       '<source src="' + element.src + '" type="video/mp4">' +
       '<source src="' + element.src + '" type="video/ogg">' +
       'Your browser does not support HTML5 video.' +
@@ -270,9 +273,19 @@ var mount = function(element){
 
   element['id'] = HELPERS.generateUUID();
 
-  var mount = element.mount;
+  var mount = element['mount'];
 
   $(mount).html(buildHTML(element));
+
+  $(document).on('click', '#' + element['id'], function(event){
+    var $target = $(event.target);
+    var mode = $target.attr('data-mode');
+
+    if(mode === 'poster'){
+      CONFIG.events.trigger('video::play', element);
+    }
+
+  });
 
   if(element.overlays){ initOverlays(element) }
 
@@ -287,33 +300,39 @@ var mount = function(element){
 
   $('#' + element.id).on('playing', function(event){
     // Sent when the media begins to play (either for the first time, after having been paused, after seeking or after ending and then restarting).
+    $('#' + element.id).attr('data-mode', 'playing');
     CONFIG.events.trigger('video::lifecycle', [ element, 'playing']);
     CONFIG.events.trigger('video::playing', [ element, VIDEOS, true ]);
   });
 
   $('#' + element.id).on('play', function(event){
     // Sent when playback of the media starts after having been paused; that is, when playback is resumed after a prior pause event.
+    $('#' + element.id).attr('data-mode', 'play');
     CONFIG.events.trigger('video::lifecycle', [ element, 'play' ]);
   });
 
   $('#' + element.id).on('seeked', function(event){
     // Sent when a seek operation completes.
+    $('#' + element.id).attr('data-mode', 'seeked');
     CONFIG.events.trigger('video::lifecycle', [ element, 'seeked' ]);
   });
 
   $('#' + element.id).on('seeking', function(event){
     // Sent when a seek operation begins.
+    $('#' + element.id).attr('data-mode', 'seeking');
     CONFIG.events.trigger('video::lifecycle', [ element, 'seeking' ]);
   });
 
   $('#' + element.id).on('pause', function(event){
     // Sent when playback is paused (manually or upon seeking).
+    $('#' + element.id).attr('data-mode', 'pause');
     CONFIG.events.trigger('video::lifecycle', [ element, 'pause' ]);
     CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
   });
 
   $('#' + element.id).on('ended', function(event){
     // Sent when playback completes.
+    $('#' + element.id).attr('data-mode', 'ended');
     CONFIG.events.trigger('video::lifecycle', [ element, 'ended' ]);
     CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
     CONFIG.events.trigger('video::ended', [ element, VIDEOS, element.autoProgress ]);

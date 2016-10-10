@@ -1,1 +1,5 @@
 @import url("../vendor/projectorjs/dist/css/projectorjs.css");
+
+[data-mode="poster"] {
+  cursor: pointer;
+}
