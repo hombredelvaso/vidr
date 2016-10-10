@@ -4,12 +4,14 @@
   "description": "",
   "main": "src/vidr.js",
   "scripts": {
-    "compile": "watchify -t browserify-css ./src/vidr.js -o ./dist/vidr.js -d",
+    "compile": "watchify ./src/vidr.js -o ./dist/vidr.js -d -t [browserify-css] -t [ babelify --presets [ es2015 ] ]",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel-preset-es2015": "^6.16.0",
+    "babelify": "^7.3.0",
     "browserify": "^13.0.1",
     "browserify-css": "^0.9.1",
     "jquery": "^3.0.0",
