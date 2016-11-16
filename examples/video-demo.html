@@ -3,7 +3,28 @@
 <head lang="en">
   <meta charset="UTF-8">
   <title>DEMO VIDEO 1</title>
+  <link rel="stylesheet" type="text/css" href="../vendor/slick-1.6.0/slick/slick.css" />
+  <link rel="stylesheet" type="text/css" href="../vendor/slick-1.6.0/slick/slick-theme.css" />
   <style>
+
+    .slick-center {
+      /*padding-bottom: 20px;*/
+      /*padding-top: 20px;*/
+      color: gold;
+    }
+
+    .slick-active {
+      opacity: 0.1;
+    }
+
+    .slick-current {
+      opacity: 1;
+    }
+
+    .slide-section {
+      padding: 10px;
+      border: solid gray 1px !important;
+    }
 
   </style>
 </head>
@@ -12,8 +33,25 @@
   <div id="video1"></div>
 
   <script src="../node_modules/jquery/dist/jquery.js"></script>
+  <script src="../vendor/slick-1.6.0/slick/slick.js"></script>
   <script src="../dist/vidr.js"></script>
   <script>
+
+    var timelineColors = {
+      'poll': '#FFC300',
+      'resource': '#FF5733',
+      'note': '#C70039'
+    };
+
+    var timelineData = [
+      {time: 10, episode: 4,  type: 'poll',  name: 'A New Hope' },
+      {time: 100, episode: 5, type: 'poll',  name: 'The Empire Strikes Back'},
+      {time: 150, episode: 6, type: 'poll',  name: 'Return of the Jedi'},
+      {time: 160, episode: 1, type: 'resource',  name: 'The Phantom Menace'},
+      {time: 165, episode: 2, type: 'resource',  name: 'Attack of the Clones'},
+      {time: 400, episode: 3, type: 'resource',  name: 'Revenge of the Sith'},
+      {time: 780, episode: 7, type: 'note',  name: 'The Force Awakens'}
+    ];
 
     ///////////////
     // lifecycle //
@@ -32,18 +70,60 @@
 
       if(element['autoPlay']){ playVideo(element) }
 
+      var isFirstVideo = element['name'] === 'video-1';
+
+      if(isFirstVideo){
+        jQuery(element.mount).append('<div id="stream"></div>');
+
+        $('#stream').slick({
+          slidesToShow: 3,
+          adaptiveHeight: true,
+          vertical: true
+        });
+
+        $(document).on('video::timeline::select video::timeline::hover', function(event, data){
+          var $streamElement = $('[data-id="' + data.id + '"]:not(.slick-cloned)');
+          $('#stream').slick('slickGoTo', parseInt($streamElement.attr('data-slick-index')));
+        });
+
+        $(document).on('video::timeline::mounted', function(event, timeline, data){
+
+          [{ name: 'Resources', id: -1, time: 0, type: 'none' }].concat(data).forEach(function(timelineEvent){
+            if(timelineEvent.id === -1){
+              $('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><div class="slide-section"><h3>' + timelineEvent.name + '</h3><div><pre style="visibility:hidden;">' + timelineEvent.type + '</pre></div><div style="visibility:hidden;">asdf</div></div></div>');
+              //$('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><h3>' + timelineEvent.name + '</h3><div></div><div></div>');
+            } else {
+              $('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><div class="slide-section"><h3>' + timelineEvent.name + '</h3><div><pre>' + timelineEvent.type + '</pre></div><div>asdf</div></div></div>');
+            }
+          });
+
+        });
+      }
+
     });
 
     jQuery(document).on('video::unmounted', function(event, element, elements){
       console.log('unmounted!', element);
 
       var isFirstVideo = element['name'] === 'video-1';
-      var newMount = '#ninjaattack';
+      var isSecondVideo = element['name'] === 'video-2';
 
       if(isFirstVideo){
+        var newMount = '#ninjaattack';
+
+        jQuery('#stream').remove();
+
         jQuery(element.mount).replaceWith('<div id="' + newMount.replace(/#/, '') + '"></div>');
 
         Vidr.embed({ video: 'video-2', mount: newMount });
+      }
+
+      if(isSecondVideo){
+        var newMount = '#third-vid';
+
+        jQuery(element.mount).replaceWith('<div id="' + newMount.replace(/#/, '') + '"></div>');
+
+        Vidr.embed({ video: 'video-3', mount: newMount });
       }
 
     });
@@ -60,8 +140,9 @@
       console.log('ended, should autoProgress?', shouldAutoProgress);
 
       var isFirstVideo = element['name'] === 'video-1';
+      var isSecondVideo = element['name'] === 'video-2';
 
-      if(isFirstVideo){
+      if(isFirstVideo || isSecondVideo){
         unmountVideo(element);
       }
 
@@ -87,10 +168,43 @@
     Vidr.init({
       'video-1': {
         type: 'video',
+        src: 'https://s3.amazonaws.com/test1-media.archemedx.com/v/archeviewer-powered-portfolio/8sablhyi2esiqwb9_NSCLC-Video-with-Updated-Thumbnail.webm',
+        timeline: {
+          colors: timelineColors,
+          data: timelineData
+        }
+      },
+      'video-2': {
+        type: 'video',
         src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113',
         poster: 'http://www.metal-archives.com/images/3/5/4/0/3540312477_logo.jpg',
+        width: 600,
         controls: true,
         overlays: [
+          {
+            type: 'html',
+            fade: { in: true, time: 1300 },
+            pause: true,
+            markup: '',
+            classes: 'example-class',
+            setup: function(video){
+              $('#' + video.overlayId).html('2 second-ish reminder!');
+              setTimeout(function(){
+                //video.play();
+                //video.clearOverlay();
+              }, 2000);
+            },
+            location: {
+              top: '0%',
+              bottom: '0%',
+              left: '65%',
+              right: '0%'
+            },
+            timing: {
+              start: 1,
+              end: 20
+            }
+          },
           {
             type: 'radio',
             fade: { in: true, time: 1300 },
@@ -115,7 +229,7 @@
               right: '0%'
             },
             timing: {
-              start: 2,
+              start: 3,
               end: 20
             }
           },
@@ -511,9 +625,10 @@
           }
         ]
       },
-      'video-2': {
+      'video-3': {
         type: 'video',
         src: 'media/videos/ninjaattack/1.mp4',
+//        width: 400,
         autoPlay: true,
         autoProgress: false,
         overlays: [
@@ -681,9 +796,10 @@
           }
         ]
       },
-      'video-3': {
+      'video-4': {
         type: 'video',
-        src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113'
+        src: 'http://player.vimeo.com/external/160147958.hd.mp4?s=4b2fb3b621dfd32511fff1deb806c6c0dd217fe0&profile_id=113',
+        width: 400
       }
     });
 

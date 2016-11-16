@@ -5,6 +5,8 @@ var R = require('ramda');
 var jQuery = require('jquery');
 var $ = jQuery;
 var Projector = require('./../vendor/projectorjs/dist/js/projector_edits.js');
+var d3 = require('./../vendor/d3kit-timeline/node_modules/d3kit/node_modules/d3/d3.js');
+var d3KitTimeline = require('./../vendor/d3kit-timeline/dist/d3kit-timeline.js');
 //////////////////////////////////
 //////////////////////////////////
 
@@ -114,17 +116,249 @@ var DATA = {};
 
 var buildHTML = function(element){
   var poster = (element.poster || '');
-  var width = (element.width || 400);
+  var width = (element.width ? `width="${element.width}"` : '');
+  var height = (element.width ? `height="${element.height}"` : '');
   var style = (element.style || '');
   var controls = ((element.controls === false) ? '' : 'controls');
 
   return `
-    <video id="${element.id}" class="" data-mode="poster" width="${width}" style="${style}" poster="${poster}" ${controls}>
+    <video id="${element.id}" class="" data-mode="poster" style="${style}" ${width} ${height} poster="${poster}" ${controls}>
       <source src="${element.src}" type="video/mp4">
       <source src="${element.src}" type="video/ogg">
       'Your browser does not support HTML5 video.'
     </video>
   `;
+};
+
+var initTimeline = function(element){
+
+  //var TIME_CONTROLS = (function(){
+  //
+  //  var video = document.getElementById("page-video");
+  //  var currentTimeValue = document.getElementById("current-time-value");
+  //  var timeSlider = document.getElementById("time-slider");
+  //
+  //  video.addEventListener('loadeddata', function() {
+  //    timeSlider.max = video.duration;
+  //  });
+  //
+  //  var updateText = function(nativeDOMElement, text){
+  //    var txt = document.createTextNode(text);
+  //    nativeDOMElement.innerText = txt.textContent;
+  //  };
+  //
+  //  var createGetSetHandler = function(get, set){
+  //    var throttleTimer;
+  //    var blockedTimer;
+  //    var blocked;
+  //
+  //    return {
+  //      get: function(){
+  //        if(blocked){ return; }
+  //        return get.apply(this, arguments);
+  //      },
+  //      set: function(){
+  //        clearTimeout(throttleTimer);
+  //        clearTimeout(blockedTimer);
+  //
+  //        var that = this;
+  //        var args = arguments;
+  //        blocked = true;
+  //        throttleTimer = setTimeout(function () {
+  //          set.apply(that, args);
+  //          blockedTimer = setTimeout(function () {
+  //            blocked = false;
+  //          }, 30);
+  //        }, 0);
+  //      }
+  //    };
+  //  };
+  //
+  //  var getSetCurrentTime = createGetSetHandler(
+  //      function(){ timeSlider.value = video.currentTime; },
+  //      function(){ try { video.currentTime = timeSlider.value } catch (er) {} }
+  //  );
+  //
+  //  timeSlider.oninput = function(){
+  //    getSetCurrentTime.set();
+  //  };
+  //
+  //  video.ontimeupdate = function(){
+  //    var formatTime = function(timeInSeconds){
+  //      var str_pad_left = function(string, pad, length) {
+  //        return (new Array(length + 1).join(pad) + string).slice(-length);
+  //      };
+  //      var time = Math.round(timeInSeconds);
+  //      var minutes = Math.floor(time / 60);
+  //      var seconds = time - minutes * 60;
+  //
+  //      return str_pad_left(minutes, '0', 2) + ':' + str_pad_left(seconds, '0', 2);
+  //    };
+  //
+  //    updateText(currentTimeValue, formatTime(video.currentTime));
+  //    getSetCurrentTime.get();
+  //
+  //  };
+  //}());
+
+  //TODO: pass in mount (and its width) optional to have it somewhere else
+
+  var secondsToPixels = function(fullWidth, fullDuration, currentTime){
+    return (fullWidth * currentTime) / fullDuration;
+  };
+  var pixelsToSeconds = function(fullWidth, fullDuration, currentPixels){
+    return (fullDuration * currentPixels) / fullWidth;
+  };
+  var svgClickEventToCoordinates = function(event){
+    var dim = event.target.getBoundingClientRect();
+    var x = event.clientX - dim.left;
+    var y = event.clientY - dim.top;
+
+    return {
+      x: x,
+      y: y
+    }
+  };
+
+  var id = `${element.id}-timeline`;
+  var video = `#${element.id}`;
+  var data = R.compose(R.map(function(timelineEvent){ return R.merge({ id: HELPERS.generateUUID() }, timelineEvent) }), R.pathOr({}, ['timeline', 'data']))(element);
+  var colors = R.pathOr({}, ['timeline', 'colors'], element);
+
+  $(`<div id=${id}></div>`).insertAfter(video);
+
+  var color = function(data){
+    return R.propOr('#777', data.type, colors);
+  };
+
+  // http://stackoverflow.com/a/14002735
+
+  var timeline = new d3KitTimeline($(`#${id}`).get(0), {
+    direction: 'down',
+    margin: { left: 0, right: 0 },
+    initialWidth: $(video).width(),
+    initialHeight: 250,
+    labelBgColor: color,
+    linkColor: color,
+    dotColor: color,
+    scale: d3.scale.linear(),
+    domain: [0, parseFloat($(video).attr('data-duration'))],
+    textFn: function(data){
+      return data.time + ' - ' + data.name;
+    }
+  });
+
+  CONFIG.events.trigger('video::timeline::mounted', [ timeline, data ]);
+
+  // ticks is count of how many
+  // thinner tickSize is 1 ? 0 is no axis, negative and 2 are thick
+
+  timeline.axis.tickFormat(function(time){ return time + '\''; });
+  timeline.axis.ticks(0);
+  timeline.axis.tickSize(1);
+  timeline.data(data).resizeToFit();
+
+  $(document).on('mouseover', `#${id} .dot`, function(event){
+    $(event.target).attr('r', 6);
+  });
+
+  $(document).on('mouseout', `#${id} .dot`, function(event){
+    $(event.target).attr('r', 3);
+  });
+
+  timeline.on('dotMouseover', function(data, index){
+    CONFIG.events.trigger('video::timeline::hover', [ data ]);
+  });
+
+  timeline.on('dotClick', function(data, index){
+    var time = data.time;
+
+    CONFIG.events.trigger('video::timeline::select', [ data ]);
+
+    $(document).trigger('video::updateTime', [ time ]);
+  });
+
+  d3.select($(`#${id} .axis-layer`).get(0)).append("path")
+    .attr("id", `${id}-background`)
+    .attr("d", "M0,-20V20H1280V-20")
+    .attr("opacity", 0.3)
+    .attr("fill", "blue");
+
+  $(document).on('click', `#${id}-background, #${id}-midground`, function(event){
+    var nextTime = pixelsToSeconds(
+      $(video).width(),
+      parseFloat($(video).attr('data-duration')),
+      svgClickEventToCoordinates(event)['x']
+    );
+
+    $(document).trigger('video::updateTime', [ nextTime ]);
+  });
+
+  $(document).on('mouseover', `#${id}-background, #${id}-midground`, function(event){
+    //TODO: have 'indicator' bar drawn on mouseover to show where your mouse is pointing?
+  });
+
+  $(document).on('video::timeupdate', function(event, element, currentTime){
+
+    var nextLocation = secondsToPixels(
+      $(video).width(),
+      parseFloat($(video).attr('data-duration')),
+      currentTime
+    );
+
+    if($(`#${id}-midground`).length > 0){
+      d3.select($(`#${id}-midground`).get(0)).remove();
+    }
+
+    d3.select($(`#${id} .axis-layer`).get(0)).append("path")
+        .attr("id", `${id}-midground`)
+        .attr("d", `M0,-20V20H${nextLocation}V-20`)
+        .attr("opacity", 0.3)
+        .attr("fill", "red");
+
+    var currentTimelineEvents = data.filter(function(timelineEvent){ return timelineEvent.time === Math.round(currentTime) });
+
+    if(R.compose(R.not, R.isEmpty)(currentTimelineEvents)){
+      //TODO: this will run 2 or 3 times per second, make sure these only run once...
+      CONFIG.events.trigger('video::timeline::hover', [ R.head(currentTimelineEvents) ]);
+      var $currentDot = $(R.head($(`#${id} .dot`).filter(function(index, dot){ return parseInt($(dot).attr('cx')) === Math.round(nextLocation) })))
+
+      $currentDot.attr('r', 6);
+      setTimeout(function(){ $currentDot.attr('r', 3); }, 1000);
+    }
+
+  });
+
+  $(`#${id} .label-layer`).hide();
+  $(`#${id} .link-layer`).hide();
+
+  $(`#${id} .dot`).each(function(index, element){
+    var dotLocation = element.cx.baseVal.value;
+    var dotFill = element.style.fill;
+
+    d3.select($(`#${id} .axis-layer`).get(0)).append("path")
+        .attr("id", `${id}-dot-indicator`)
+        .attr("d", `M${dotLocation - 1},-20V20H${dotLocation}V-20`)
+        .attr("opacity", 0.5)
+        .attr("fill", dotFill);
+
+    //d3.select($(`#${id} .axis-layer`).get(0)).append("rect")
+    //    .attr("id", `${id}-dot-indicator`)
+    //    .attr("x", location)
+    //    .attr("width", 1)
+    //    .attr("height", 20)
+    //    .attr("fill", "black");
+
+    $(element).css('cursor', 'pointer');
+  });
+
+  $(document).on('createDot', function(event, newData){
+    var currentTime = Math.round($(video).get(0).currentTime);
+    var currentData = timeline.data();
+
+    timeline.data(R.append(newData, currentData));
+  });
+
 };
 
 var initOverlays = function(element){
@@ -155,7 +389,16 @@ var initOverlays = function(element){
       };
 
       if(showOverlay()){
-        overlay.setup({ goTo: goTo });
+        overlay.setup({
+          overlayId: 'overlay-' + id,
+          element: element.id,
+          clearOverlay: function(){ $('#overlay-' + id).html(''); },
+          pause: function(){ $('#' + element.id).get(0).pause(); },
+          play: function(){ $('#' + element.id).get(0).play(); },
+          go: function(location){ $('#' + element.id).get(0).currentTime = location; $('#' + element.id).get(0).play(); },
+          goTo: goTo // TODO: refactor to goToBranch
+        });
+
         if(overlay.pause){ $('#' + element.id).get(0).pause(); }
       }
 
@@ -163,7 +406,7 @@ var initOverlays = function(element){
 
     projector.addOverlay(
         Projector.HTMLBox({
-          html: overlay.html
+          html: '<div class="overlay-wrapper" style="pointer-events: all;" >' + overlay.html + '</div>'
         }),
         R.merge(overlay.location, { timings: [R.assoc('afterBeginOverlay', afterBeginOverlay, overlay.timing) ] })
     );
@@ -180,7 +423,15 @@ var initOverlays = function(element){
       };
 
       if(showOverlay()){
-        overlay.setup({ videoElement: element.id });
+        overlay.setup({
+          overlayId: 'overlay-' + id,
+          element: element.id,
+          clearOverlay: function(){ $('#overlay-' + id).html(''); },
+          pause: function(){ $('#' + element.id).get(0).pause(); },
+          play: function(){ $('#' + element.id).get(0).play(); },
+          go: function(location){ $('#' + element.id).get(0).currentTime = location; $('#' + element.id).get(0).play(); }
+        });
+
         if(overlay.pause){ $('#' + element.id).get(0).pause(); }
       }
 
@@ -188,7 +439,7 @@ var initOverlays = function(element){
 
     projector.addOverlay(
         Projector.HTMLBox({
-          html: overlay.html
+          html: '<div class="overlay-wrapper ' + R.propOr('', 'classes', overlay) + '" style="pointer-events: all;" ><div id="overlay-' + id + '">' + R.propOr('', 'markup', overlay) + '</div></div>'
         }),
         R.merge(overlay.location, { timings: [R.assoc('afterBeginOverlay', afterBeginOverlay, overlay.timing) ] })
     );
@@ -290,6 +541,20 @@ var mount = function(element){
 
   });
 
+  $(document).on('video::updateTime', function(event, time){
+    $('#' + element.id).get(0).currentTime = time;
+  });
+
+  $('#' + element.id).on('loadeddata', function(event){
+
+    var duration = $('#' + element.id).get(0).duration;
+
+    $('#' + element.id).attr('data-duration', duration);
+
+    if(element.timeline){ initTimeline(element) }
+
+  });
+
   if(element.overlays){ initOverlays(element) }
 
   CONFIG.events.trigger('video::mounted', [ element, VIDEOS ]);
@@ -343,6 +608,8 @@ var mount = function(element){
 
   $('#' + element.id).on('timeupdate', function(event){
     // The time indicated by the element's currentTime attribute has changed.
+    var currentTime = $('#' + element.id).get(0).currentTime;
+    $(document).trigger('video::timeupdate', [ element, currentTime ]);
     CONFIG.events.trigger('video::lifecycle', [ element, 'timeupdate' ]);
   });
 
