@@ -222,8 +222,8 @@ var initTimeline = function(element){
 
   var id = `${element.id}-timeline`;
   var video = `#${element.id}`;
-  var data = R.compose(R.map(function(timelineEvent){ return R.merge({ id: HELPERS.generateUUID() }, timelineEvent) }), R.pathOr({}, ['timeline', 'data']))(element);
-  var colors = R.pathOr({}, ['timeline', 'colors'], element);
+  var data = R.compose(R.map(function(timelineEvent){ return R.merge({ id: HELPERS.generateUUID() }, timelineEvent) }), R.pathOr({}, ['timeline', 'stream', 'data']))(element);
+  var colors = R.pathOr({}, ['timeline', 'stream', 'colors'], element);
 
   $(`<div id=${id}></div>`).insertAfter(video);
 
@@ -371,6 +371,7 @@ var initOverlays = function(element){
 
   var overlayState = {};
 
+  // TODO: implement branching loops, right now it is linear...
   var branchingOverlay = function(projector, overlay){
     var id = HELPERS.generateUUID();
     var goTo = function(branchId){
@@ -413,6 +414,7 @@ var initOverlays = function(element){
 
   };
 
+  // TODO: implement showOverlay... logic to 'answer' something, change state, then not show again...
   var htmlOverlay = function(projector, overlay){
     var id = HELPERS.generateUUID();
 
@@ -446,6 +448,7 @@ var initOverlays = function(element){
 
   };
 
+  // TODO: deprecate radioOverlay (here, in switch statement and in examples), compose Assessr#multiplechoice via htmlOverlay with `setup` hooks to control overlay from Assessr
   var radioOverlay = function(projector, overlay){
     var id = HELPERS.generateUUID();
     var slug = HELPERS.slugify(overlay.question.title) + '-' + id;
@@ -530,29 +533,42 @@ var mount = function(element){
 
   $(mount).html(buildHTML(element));
 
-  $(document).on('click', '#' + element['id'], function(event){
-    var $target = $(event.target);
-    var mode = $target.attr('data-mode');
-    var hasPoster = $target.attr('poster');
+  HELPERS.listen({
+    source: $(document),
+    event: 'click',
+    target: '#' + element['id'],
+    callback: function(event){
+      var $target = $(event.target);
+      var mode = $target.attr('data-mode');
+      var hasPoster = $target.attr('poster');
 
-    if(mode === 'poster' && hasPoster){
-      CONFIG.events.trigger('video::play', element);
+      if(mode === 'poster' && hasPoster){
+        CONFIG.events.trigger('video::play', element);
+      }
+
     }
-
   });
 
-  $(document).on('video::updateTime', function(event, time){
-    $('#' + element.id).get(0).currentTime = time;
+  HELPERS.listen({
+    source: $(document),
+    event: 'video::updateTime',
+    callback: function(event, time){
+      $('#' + element.id).get(0).currentTime = time;
+    }
   });
 
-  $('#' + element.id).on('loadeddata', function(event){
+  HELPERS.listen({
+    source: $('#' + element.id),
+    event: 'loadeddata',
+    callback: function(event){
 
-    var duration = $('#' + element.id).get(0).duration;
+      var duration = $('#' + element.id).get(0).duration;
 
-    $('#' + element.id).attr('data-duration', duration);
+      $('#' + element.id).attr('data-duration', duration);
 
-    if(element.timeline){ initTimeline(element) }
+      if(element.timeline){ initTimeline(element) }
 
+    }
   });
 
   if(element.overlays){ initOverlays(element) }
@@ -566,56 +582,88 @@ var mount = function(element){
   // https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Media_events //
   ////////////////////////////////////////////////////////////////////////////
 
-  $('#' + element.id).on('playing', function(event){
-    // Sent when the media begins to play (either for the first time, after having been paused, after seeking or after ending and then restarting).
-    $('#' + element.id).attr('data-mode', 'playing');
-    CONFIG.events.trigger('video::lifecycle', [ element, 'playing']);
-    CONFIG.events.trigger('video::playing', [ element, VIDEOS, true ]);
+  HELPERS.listen({
+    event: 'playing',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when the media begins to play (either for the first time, after having been paused, after seeking or after ending and then restarting).
+      $('#' + element.id).attr('data-mode', 'playing');
+      CONFIG.events.trigger('video::lifecycle', [ element, 'playing']);
+      CONFIG.events.trigger('video::playing', [ element, VIDEOS, true ]);
+    }
   });
 
-  $('#' + element.id).on('play', function(event){
-    // Sent when playback of the media starts after having been paused; that is, when playback is resumed after a prior pause event.
-    $('#' + element.id).attr('data-mode', 'play');
-    CONFIG.events.trigger('video::lifecycle', [ element, 'play' ]);
+  HELPERS.listen({
+    event: 'play',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when playback of the media starts after having been paused; that is, when playback is resumed after a prior pause event.
+      $('#' + element.id).attr('data-mode', 'play');
+      CONFIG.events.trigger('video::lifecycle', [ element, 'play' ]);
+    }
   });
 
-  $('#' + element.id).on('seeked', function(event){
-    // Sent when a seek operation completes.
-    $('#' + element.id).attr('data-mode', 'seeked');
-    CONFIG.events.trigger('video::lifecycle', [ element, 'seeked' ]);
+  HELPERS.listen({
+    event: 'seeked',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when a seek operation completes.
+      $('#' + element.id).attr('data-mode', 'seeked');
+      CONFIG.events.trigger('video::lifecycle', [ element, 'seeked' ]);
+    }
   });
 
-  $('#' + element.id).on('seeking', function(event){
-    // Sent when a seek operation begins.
-    $('#' + element.id).attr('data-mode', 'seeking');
-    CONFIG.events.trigger('video::lifecycle', [ element, 'seeking' ]);
+  HELPERS.listen({
+    event: 'seeking',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when a seek operation begins.
+      $('#' + element.id).attr('data-mode', 'seeking');
+      CONFIG.events.trigger('video::lifecycle', [ element, 'seeking' ]);
+    }
   });
 
-  $('#' + element.id).on('pause', function(event){
-    // Sent when playback is paused (manually or upon seeking).
-    $('#' + element.id).attr('data-mode', 'pause');
-    CONFIG.events.trigger('video::lifecycle', [ element, 'pause' ]);
-    CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
+  HELPERS.listen({
+    event: 'pause',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when playback is paused (manually or upon seeking).
+      $('#' + element.id).attr('data-mode', 'pause');
+      CONFIG.events.trigger('video::lifecycle', [ element, 'pause' ]);
+      CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
+    }
   });
 
-  $('#' + element.id).on('ended', function(event){
-    // Sent when playback completes.
-    $('#' + element.id).attr('data-mode', 'ended');
-    CONFIG.events.trigger('video::lifecycle', [ element, 'ended' ]);
-    CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
-    CONFIG.events.trigger('video::ended', [ element, VIDEOS, element.autoProgress ]);
+  HELPERS.listen({
+    event: 'ended',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when playback completes.
+      $('#' + element.id).attr('data-mode', 'ended');
+      CONFIG.events.trigger('video::lifecycle', [ element, 'ended' ]);
+      CONFIG.events.trigger('video::playing', [ element, VIDEOS, false ]);
+      CONFIG.events.trigger('video::ended', [ element, VIDEOS, element.autoProgress ]);
+    }
   });
 
-  $('#' + element.id).on('timeupdate', function(event){
-    // The time indicated by the element's currentTime attribute has changed.
-    var currentTime = $('#' + element.id).get(0).currentTime;
-    $(document).trigger('video::timeupdate', [ element, currentTime ]);
-    CONFIG.events.trigger('video::lifecycle', [ element, 'timeupdate' ]);
+  HELPERS.listen({
+    event: 'timeupdate',
+    source: $('#' + element.id),
+    callback: function(event){
+      // The time indicated by the element's currentTime attribute has changed.
+      var currentTime = $('#' + element.id).get(0).currentTime;
+      $(document).trigger('video::timeupdate', [ element, currentTime ]);
+      CONFIG.events.trigger('video::lifecycle', [ element, 'timeupdate' ]);
+    }
   });
 
-  $('#' + element.id).on('volumechange', function(event){
-    // Sent when the audio volume changes (both when the volume is set and when the muted attribute is changed).
-    CONFIG.events.trigger('video::lifecycle', [ element, 'volumechange' ]);
+  HELPERS.listen({
+    event: 'volumechange',
+    source: $('#' + element.id),
+    callback: function(event){
+      // Sent when the audio volume changes (both when the volume is set and when the muted attribute is changed).
+      CONFIG.events.trigger('video::lifecycle', [ element, 'volumechange' ]);
+    }
   });
 
   return element;
@@ -623,15 +671,6 @@ var mount = function(element){
 
 var unmount = function(element){
   var mount = element.mount;
-
-  $('#' + element.id).off('playing');
-  $('#' + element.id).off('play');
-  $('#' + element.id).off('seeked');
-  $('#' + element.id).off('seeking');
-  $('#' + element.id).off('pause');
-  $('#' + element.id).off('ended');
-  $('#' + element.id).off('timeupdate');
-  $('#' + element.id).off('volumechange');
 
   $(mount).html('');
 

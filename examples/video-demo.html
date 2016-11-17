@@ -37,22 +37,6 @@
   <script src="../dist/vidr.js"></script>
   <script>
 
-    var timelineColors = {
-      'poll': '#FFC300',
-      'resource': '#FF5733',
-      'note': '#C70039'
-    };
-
-    var timelineData = [
-      {time: 10, episode: 4,  type: 'poll',  name: 'A New Hope' },
-      {time: 100, episode: 5, type: 'poll',  name: 'The Empire Strikes Back'},
-      {time: 150, episode: 6, type: 'poll',  name: 'Return of the Jedi'},
-      {time: 160, episode: 1, type: 'resource',  name: 'The Phantom Menace'},
-      {time: 165, episode: 2, type: 'resource',  name: 'Attack of the Clones'},
-      {time: 400, episode: 3, type: 'resource',  name: 'Revenge of the Sith'},
-      {time: 780, episode: 7, type: 'note',  name: 'The Force Awakens'}
-    ];
-
     ///////////////
     // lifecycle //
     ///////////////
@@ -65,6 +49,35 @@
       jQuery(document).trigger('video::unmount', [ video ]);
     };
 
+    // TODO: extract this into more formal stream handler...
+    var createStream = function(element){
+      jQuery(element.mount).append('<div id="stream"></div>');
+
+      $('#stream').slick({
+        slidesToShow: 3,
+        adaptiveHeight: true,
+        vertical: true
+      });
+
+      $(document).on('video::timeline::select video::timeline::hover', function(event, data){
+        var $streamElement = $('[data-id="' + data.id + '"]:not(.slick-cloned)');
+        $('#stream').slick('slickGoTo', parseInt($streamElement.attr('data-slick-index')));
+      });
+
+      $(document).on('video::timeline::mounted', function(event, timeline, data){
+
+        [{ name: 'Resources', id: -1, time: 0, type: 'none' }].concat(data).forEach(function(timelineEvent){
+          if(timelineEvent.id === -1){
+            $('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><div class="slide-section"><h3>' + timelineEvent.name + '</h3><div><pre style="visibility:hidden;">' + timelineEvent.type + '</pre></div><div style="visibility:hidden;">' + (timelineEvent.body || '') + '</div></div></div>');
+            //$('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><h3>' + timelineEvent.name + '</h3><div></div><div></div>');
+          } else {
+            $('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><div class="slide-section"><h3>' + timelineEvent.name + '</h3><div><pre>' + timelineEvent.type + '</pre></div><div>' + (timelineEvent.body || '') + '</div></div></div>');
+          }
+        });
+
+      });
+    };
+
     jQuery(document).on('video::mounted', function(event, element, elements){
       console.log('mounted!', element);
 
@@ -73,31 +86,7 @@
       var isFirstVideo = element['name'] === 'video-1';
 
       if(isFirstVideo){
-        jQuery(element.mount).append('<div id="stream"></div>');
-
-        $('#stream').slick({
-          slidesToShow: 3,
-          adaptiveHeight: true,
-          vertical: true
-        });
-
-        $(document).on('video::timeline::select video::timeline::hover', function(event, data){
-          var $streamElement = $('[data-id="' + data.id + '"]:not(.slick-cloned)');
-          $('#stream').slick('slickGoTo', parseInt($streamElement.attr('data-slick-index')));
-        });
-
-        $(document).on('video::timeline::mounted', function(event, timeline, data){
-
-          [{ name: 'Resources', id: -1, time: 0, type: 'none' }].concat(data).forEach(function(timelineEvent){
-            if(timelineEvent.id === -1){
-              $('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><div class="slide-section"><h3>' + timelineEvent.name + '</h3><div><pre style="visibility:hidden;">' + timelineEvent.type + '</pre></div><div style="visibility:hidden;">asdf</div></div></div>');
-              //$('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><h3>' + timelineEvent.name + '</h3><div></div><div></div>');
-            } else {
-              $('#stream').slick('slickAdd', '<div data-id="' + timelineEvent.id + '" data-time="' + timelineEvent.time + '"><div class="slide-section"><h3>' + timelineEvent.name + '</h3><div><pre>' + timelineEvent.type + '</pre></div><div>asdf</div></div></div>');
-            }
-          });
-
-        });
+        createStream(element);
       }
 
     });
@@ -170,8 +159,22 @@
         type: 'video',
         src: 'https://s3.amazonaws.com/test1-media.archemedx.com/v/archeviewer-powered-portfolio/8sablhyi2esiqwb9_NSCLC-Video-with-Updated-Thumbnail.webm',
         timeline: {
-          colors: timelineColors,
-          data: timelineData
+          stream: {
+            colors: {
+              'poll': '#FFC300',
+              'resource': '#FF5733',
+              'note': '#C70039'
+            },
+            data: [
+              {time: 10,  episode: 4, type: 'poll',      name: 'A New Hope',           body: '<div><a target="_" href="http://www.google.com">GOOG</a></div>' },
+              {time: 100, episode: 5, type: 'poll',      name: 'The Empire Strikes Back'},
+              {time: 150, episode: 6, type: 'poll',      name: 'Return of the Jedi'},
+              {time: 160, episode: 1, type: 'resource',  name: 'The Phantom Menace'},
+              {time: 165, episode: 2, type: 'resource',  name: 'Attack of the Clones'},
+              {time: 400, episode: 3, type: 'resource',  name: 'Revenge of the Sith'},
+              {time: 780, episode: 7, type: 'note',      name: 'The Force Awakens'}
+            ]
+          }
         }
       },
       'video-2': {
@@ -190,8 +193,8 @@
             setup: function(video){
               $('#' + video.overlayId).html('2 second-ish reminder!');
               setTimeout(function(){
-                //video.play();
-                //video.clearOverlay();
+                video.play();
+                video.clearOverlay();
               }, 2000);
             },
             location: {
